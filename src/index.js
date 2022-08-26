@@ -12,7 +12,6 @@ refs.form.addEventListener('submit', onChangeForm);
 
 let items = [];
 let query = '';
-const markup = render(items);
 
 function onChangeForm(e) {
   e.preventDefault();
@@ -28,14 +27,14 @@ function fetchDate() {
     )
     .then(({ data }) => {
       items = data.hits;
-      render(items);
+      render();
       //   console.log(date);
     })
     .catch(error => console.log(error.message));
 }
 
 function render(items) {
-  return items
+  const markup = items
     .map(item => {
       return `<div class="photo-card">
   <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
@@ -57,7 +56,7 @@ function render(items) {
     })
     .join('');
 
-  //   console.log(items);
+  // console.log(items);
 }
 
 refs.gallery.insertAdjacentHTML('beforeend', markup);
