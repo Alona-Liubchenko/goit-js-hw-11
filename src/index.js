@@ -9,54 +9,73 @@ const refs = {
 };
 
 refs.form.addEventListener('submit', onChangeForm);
+refs.loadMoreBtn.addEventListener('click', onChangeLoadMore);
 
 let items = [];
 let query = '';
+let currentPage = 1;
+let totalPages = 1;
+const HITS_PER_PAGE = 5;
 
 function onChangeForm(e) {
   e.preventDefault();
   query = e.currentTarget.elements.searchQuery.value.trim();
-  //   console.log(query);
+  currentPage = 1;
+  refs.gallery.innerHTML = '';
+  // if (!query) {
+  //   return;
+  // }
   fetchDate();
 }
 
 function fetchDate() {
   axios
     .get(
-      `/?key=29510449-399a931f33aaf543423460729&q=${query}&image_type=photo&orientation=horizontal&safesearch=true`
+      `/?key=29510449-399a931f33aaf543423460729&q=${query}&image_type=photo&orientation=horizontal&safesearch=true&page=${currentPage}`
     )
     .then(({ data }) => {
       items = data.hits;
+
+      // if (items.length === 0) {
+      //   Notiflix.Notify.failure(
+      //     'Sorry, there are no images matching your search query. Please try again.'
+      //   );
+      // }
+      currentPage = 1;
+      totalPages = data.totalHits / HITS_PER_PAGE;
       render();
-      //   console.log(date);
     })
     .catch(error => console.log(error.message));
 }
 
-function render(items) {
+function render() {
   const markup = items
-    .map(item => {
-      return `<div class="photo-card">
-  <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
-  <div class="info">
-    <p class="info-item">
-      <b>Likes</b>${item.likes}
-    </p>
-    <p class="info-item">
-      <b>Views</b>${item.views}
-    </p>
-    <p class="info-item">
-      <b>Comments</b>${item.comments}
-    </p>
-    <p class="info-item">
-      <b>Downloads</b>${item.downloads}
-    </p>
-  </div>
-</div>`;
-    })
+    .map(
+      ({ webformatURL, tags, likes, views, comments, downloads }) =>
+        `<div class="photo-card">
+    <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+    <div class="info">
+      <p class="info-item">
+        <b>Likes</b>${likes}
+      </p>
+      <p class="info-item">
+        <b>Views</b>${views}
+      </p>
+      <p class="info-item">
+        <b>Comments</b>${comments}
+      </p>
+      <p class="info-item">
+        <b>Downloads</b>${downloads}
+      </p>
+    </div>
+  </div>`
+    )
     .join('');
-
-  // console.log(items);
+  // refs.gallery.innerHTML = '';
+  refs.gallery.insertAdjacentHTML('beforeend', markup);
 }
 
-refs.gallery.insertAdjacentHTML('beforeend', markup);
+function onChangeLoadMore() {
+  currentPage += 1;
+  fetchDate();
+}
