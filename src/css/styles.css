@@ -62,9 +62,9 @@ img {
 }
 
 .load-more {
-  display: block;
   margin: 20px auto;
-}
-/* .is-hidden {
   display: none;
-} */
+}
+.visible {
+  display: block;
+}
