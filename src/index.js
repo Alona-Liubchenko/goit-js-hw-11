@@ -34,28 +34,29 @@ function onChangeForm(e) {
   //   return;
   // }
   fetchDate();
+  console.log(query);
 }
 
-function fetchDate() {
-  axios
-    .get(
+async function fetchDate() {
+  try {
+    const { data } = await axios.get(
       `/?key=29510449-399a931f33aaf543423460729&q=${query}&image_type=photo&orientation=horizontal&safesearch=true&&per_page=${HITS_PER_PAGE}&page=${currentPage}`
-    )
-    .then(({ data }) => {
-      items = data.hits;
-
-      if (data.totalHits === 0) {
-        refs.loadMoreBtn.classList.add('is-hidden');
-        Notiflix.Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-      }
-
-      totalPages = data.totalHits / HITS_PER_PAGE;
-      render();
-      lightbox.refresh();
-    })
-    .catch(error => console.log(error.message));
+    );
+    // .then(({ data }) => {
+    items = data.hits;
+    console.log(items);
+    if (data.totalHits === 0) {
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+      return;
+    }
+    totalPages = data.totalHits / HITS_PER_PAGE;
+    render();
+    lightbox.refresh();
+  } catch (error) {
+    console.log(error.massage);
+  }
 }
 
 function render() {
