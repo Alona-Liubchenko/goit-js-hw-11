@@ -1,8 +1,10 @@
-import fetchDate from './js/fetch';
-import render from './js/createmarkup';
+import axios from 'axios';
 import Notiflix from 'notiflix';
+
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+
+axios.defaults.baseURL = 'https://pixabay.com/api';
 
 const refs = {
   form: document.querySelector('.search-form'),
@@ -14,15 +16,14 @@ refs.form.addEventListener('submit', onChangeForm);
 refs.loadMoreBtn.addEventListener('click', onChangeLoadMore);
 
 const DEFAULT_CURENT_PEGE = 1;
-const perPage = 40;
+const HITS_PER_PAGE = 40;
 
 let items = [];
 let query = '';
-let page = DEFAULT_CURENT_PEGE;
+let currentPage = DEFAULT_CURENT_PEGE;
 let totalPages = 0;
 
 const lightbox = new SimpleLightbox('.gallery a', {
-  scrollZoom: false,
   captionsData: 'alt',
   captionDelay: 250,
 });
@@ -31,53 +32,77 @@ function onChangeForm(e) {
   e.preventDefault();
   if (query === e.currentTarget.elements.searchQuery.value.trim()) return;
   query = e.currentTarget.elements.searchQuery.value.trim();
-  page = DEFAULT_CURENT_PEGE;
+  currentPage = DEFAULT_CURENT_PEGE;
   refs.gallery.innerHTML = '';
   items = [];
+
   if (!query) return;
 
-  fetchDate(query, page, perPage)
-    .then(data => {
-      items = [...items, data.hits];
-      totalPages = data.totalHits / perPage;
-
-      if (data.totalHits === 0) {
-        Notiflix.Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-        return;
-      }
-      render(data.hits);
-
-      Notiflix.Notify.success(`"Hooray! We found ${data.totalHits} images."`);
-      lightbox.refresh();
-      btnOn();
-    })
-    .catch(error => console.log(error.message));
+  fetchDate();
 }
 
-function onChangeLoadMore() {
-  page += 1;
-  fetchDate(query, page, perPage).then(data => {
+async function fetchDate() {
+  btnOn();
+  try {
+    const { data } = await axios.get(
+      `/?key=29510449-399a931f33aaf543423460729&q=${query}&image_type=photo&orientation=horizontal&safesearch=true&&per_page=${HITS_PER_PAGE}&page=${currentPage}`
+    );
+    // .then(({ data }) => {
     items = [...items, data.hits];
-    totalPages = data.totalHits / perPage;
+
+    totalPages = data.totalHits / HITS_PER_PAGE;
     render(data.hits);
     lightbox.refresh();
-  });
-
-  if (page < totalPages) {
-    btnOn();
-  } else {
-    Notiflix.Notify.info(
-      "We're sorry, but you've reached the end of search results."
-    );
-    btnOff();
+  } catch (error) {
+    console.log(error.massage);
   }
 }
-
+function render(items) {
+  const markup = items
+    .map(
+      ({
+        largeImageURL,
+        webformatURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) =>
+        `  <div class="photo-card">
+        <a href="${largeImageURL}" class="gallery-link">
+         
+             <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+             <div class="info">
+               <p class="info-item"><b>Likes: </b>${likes}</p>
+               <p class="info-item"><b>Views: </b>${views}</p>
+               <p class="info-item"><b>Comments: </b>${comments}</p>
+               <p class="info-item"><b>Downloads: </b>${downloads}</p>
+             </div>
+             </a>
+           </div>
+           `
+    )
+    .join('');
+  // refs.gallery.innerHTML = '';
+  refs.gallery.insertAdjacentHTML('beforeend', markup);
+}
 function btnOn() {
   refs.loadMoreBtn.classList.add('visible');
 }
 function btnOff() {
   refs.loadMoreBtn.classList.remove('visible');
+}
+function onChangeLoadMore() {
+  currentPage += 1;
+  if (currentPage < totalPages) {
+    // btnOn();
+  } else {
+    Notiflix.Notify.info(
+      "We're sorry, but you've reached the end of search results."
+    );
+    btnOff();
+    // console.log('feta');
+  }
+  fetchDate();
 }
