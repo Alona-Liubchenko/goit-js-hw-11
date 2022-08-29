@@ -1,5 +1,5 @@
 import fetchDate from './js/fetch';
-import render from './js/createmarkup';
+import render from './js/createMarkup';
 import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
