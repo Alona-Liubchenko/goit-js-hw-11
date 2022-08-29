@@ -90,6 +90,7 @@ function render(items) {
 function btnOn() {
   refs.loadMoreBtn.classList.add('visible');
 }
+
 function btnOff() {
   refs.loadMoreBtn.classList.remove('visible');
 }
